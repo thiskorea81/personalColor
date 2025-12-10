@@ -122,28 +122,65 @@
                 </div>
 
                 <!-- Zone B: Simulation Area (Avatar + User Face) -->
-                <div class="relative w-full aspect-[4/5] bg-gray-100 rounded-2xl overflow-hidden mb-6 shadow-md flex items-end justify-center">
+                <div class="relative w-full aspect-[4/5] bg-gray-50 rounded-2xl overflow-hidden mb-6 shadow-md flex items-end justify-center border border-gray-100">
                     
-                    <!-- Avatar Body (SVG) -->
-                    <svg viewBox="0 0 200 240" class="w-full h-full absolute bottom-0">
-                        <!-- T-Shirt/Body -->
+                    <!-- Realistic Avatar Body (SVG) -->
+                    <svg viewBox="0 0 400 500" class="w-full h-full absolute bottom-0">
+                        <defs>
+                            <linearGradient id="skinGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:#eac09d;stop-opacity:1" />
+                                <stop offset="50%" style="stop-color:#f5d0b0;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#eac09d;stop-opacity:1" />
+                            </linearGradient>
+                            <!-- Cloth Shadows for Realism -->
+                            <linearGradient id="clothShadow" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:black;stop-opacity:0.05" />
+                                <stop offset="100%" style="stop-color:black;stop-opacity:0.2" />
+                            </linearGradient>
+                            <!-- Armpit/Fold Shadows -->
+                            <radialGradient id="foldShadow" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+                                <stop offset="0%" style="stop-color:black;stop-opacity:0.2" />
+                                <stop offset="100%" style="stop-color:black;stop-opacity:0" />
+                            </radialGradient>
+                        </defs>
+                        
+                        <!-- Neck (Realistic Shape) -->
+                        <path d="M150,150 Q200,180 250,150 L250,220 L150,220 Z" fill="url(#skinGradient)" />
+                        <!-- Neck Shadow (under chin) -->
+                        <path d="M150,150 Q200,180 250,150 L250,170 Q200,200 150,170 Z" fill="black" opacity="0.15" />
+
+                        <!-- T-Shirt/Body Base -->
                         <path 
-                            d="M40,240 L40,160 C40,140 60,130 100,130 C140,130 160,140 160,160 L160,240 Z" 
+                            d="M120,200 Q200,240 280,200 L350,250 L350,550 L50,550 L50,250 Z" 
                             :fill="currentSimulatedColor"
                             class="transition-colors duration-500"
                         />
-                        <!-- Neck Area (Skin color placeholder) -->
-                        <path d="M85,130 Q100,150 115,130" fill="#F0D5BE" />
+                        
+                        <!-- Realistic Folds & Shadows Overlay -->
+                        <!-- Shoulders highlight -->
+                        <path d="M120,200 Q200,240 280,200 L280,220 Q200,260 120,220 Z" fill="white" opacity="0.1" />
+                        <!-- Side Shadows -->
+                        <path d="M50,250 L70,550 L50,550 Z" fill="black" opacity="0.1" />
+                        <path d="M350,250 L330,550 L350,550 Z" fill="black" opacity="0.1" />
+                        <!-- Armpit Folds -->
+                        <path d="M50,250 Q100,300 80,350" stroke="black" stroke-width="2" stroke-opacity="0.05" fill="none" />
+                        <path d="M350,250 Q300,300 320,350" stroke="black" stroke-width="2" stroke-opacity="0.05" fill="none" />
                     </svg>
 
                     <!-- User Face Overlay -->
-                    <div class="absolute top-[15%] w-[40%] aspect-square rounded-full border-4 border-white shadow-lg overflow-hidden bg-gray-300 z-10">
+                    <div class="absolute top-[12%] w-[42%] aspect-[3/4] rounded-[50%] border-4 border-white shadow-xl overflow-hidden bg-gray-200 z-10 transform">
+                        <!-- Chin Shadow inside container -->
+                        <div class="absolute bottom-0 w-full h-8 bg-gradient-to-t from-black/20 to-transparent z-20 pointer-events-none"></div>
                         <img 
                             v-if="capturedImage" 
                             :src="capturedImage" 
-                            class="w-full h-full object-cover mirror-mode scale-150 translate-y-[10%]" 
+                            class="w-full h-full object-cover mirror-mode scale-[1.2] translate-y-[5%]" 
                             alt="User Face" 
                         />
+                        <!-- Default Face (when testing without camera) -->
+                        <div v-else class="w-full h-full flex items-center justify-center bg-gray-100 text-gray-300">
+                            <i data-lucide="user" class="w-12 h-12"></i>
+                        </div>
                     </div>
                 </div>
 
