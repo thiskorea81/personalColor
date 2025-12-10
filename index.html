@@ -121,72 +121,72 @@
                     <p class="text-sm text-purple-600 mt-2 font-medium">{{ resultDesc }}</p>
                 </div>
 
-                <!-- Zone B: Simulation Area (Avatar + User Face) -->
-                <div class="relative w-full aspect-[4/5] bg-gray-50 rounded-2xl overflow-hidden mb-6 shadow-md flex items-end justify-center border border-gray-100">
+                <!-- Zone B: Split View (Left: Real Photo, Right: Vector Avatar) -->
+                <div class="grid grid-cols-2 gap-3 mb-6 w-full aspect-[16/10]">
                     
-                    <!-- Realistic Avatar Body (SVG) -->
-                    <svg viewBox="0 0 400 500" class="w-full h-full absolute bottom-0">
-                        <defs>
-                            <linearGradient id="skinGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                <stop offset="0%" style="stop-color:#eac09d;stop-opacity:1" />
-                                <stop offset="50%" style="stop-color:#f5d0b0;stop-opacity:1" />
-                                <stop offset="100%" style="stop-color:#eac09d;stop-opacity:1" />
-                            </linearGradient>
-                            <!-- Cloth Shadows for Realism -->
-                            <linearGradient id="clothShadow" x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" style="stop-color:black;stop-opacity:0.05" />
-                                <stop offset="100%" style="stop-color:black;stop-opacity:0.2" />
-                            </linearGradient>
-                            <!-- Armpit/Fold Shadows -->
-                            <radialGradient id="foldShadow" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
-                                <stop offset="0%" style="stop-color:black;stop-opacity:0.2" />
-                                <stop offset="100%" style="stop-color:black;stop-opacity:0" />
-                            </radialGradient>
-                        </defs>
-                        
-                        <!-- Neck (Realistic Shape) -->
-                        <path d="M150,150 Q200,180 250,150 L250,220 L150,220 Z" fill="url(#skinGradient)" />
-                        <!-- Neck Shadow (under chin) -->
-                        <path d="M150,150 Q200,180 250,150 L250,170 Q200,200 150,170 Z" fill="black" opacity="0.15" />
-
-                        <!-- T-Shirt/Body Base -->
-                        <path 
-                            d="M120,200 Q200,240 280,200 L350,250 L350,550 L50,550 L50,250 Z" 
-                            :fill="currentSimulatedColor"
-                            class="transition-colors duration-500"
-                        />
-                        
-                        <!-- Realistic Folds & Shadows Overlay -->
-                        <!-- Shoulders highlight -->
-                        <path d="M120,200 Q200,240 280,200 L280,220 Q200,260 120,220 Z" fill="white" opacity="0.1" />
-                        <!-- Side Shadows -->
-                        <path d="M50,250 L70,550 L50,550 Z" fill="black" opacity="0.1" />
-                        <path d="M350,250 L330,550 L350,550 Z" fill="black" opacity="0.1" />
-                        <!-- Armpit Folds -->
-                        <path d="M50,250 Q100,300 80,350" stroke="black" stroke-width="2" stroke-opacity="0.05" fill="none" />
-                        <path d="M350,250 Q300,300 320,350" stroke="black" stroke-width="2" stroke-opacity="0.05" fill="none" />
-                    </svg>
-
-                    <!-- User Face Overlay -->
-                    <div class="absolute top-[12%] w-[42%] aspect-[3/4] rounded-[50%] border-4 border-white shadow-xl overflow-hidden bg-gray-200 z-10 transform">
-                        <!-- Chin Shadow inside container -->
-                        <div class="absolute bottom-0 w-full h-8 bg-gradient-to-t from-black/20 to-transparent z-20 pointer-events-none"></div>
+                    <!-- Left: Captured Photo -->
+                    <div class="relative rounded-2xl overflow-hidden bg-gray-200 border border-gray-100 shadow-md">
                         <img 
                             v-if="capturedImage" 
                             :src="capturedImage" 
-                            class="w-full h-full object-cover mirror-mode scale-[1.2] translate-y-[5%]" 
+                            class="w-full h-full object-cover mirror-mode" 
                             alt="User Face" 
                         />
-                        <!-- Default Face (when testing without camera) -->
-                        <div v-else class="w-full h-full flex items-center justify-center bg-gray-100 text-gray-300">
-                            <i data-lucide="user" class="w-12 h-12"></i>
+                        <div class="absolute bottom-0 left-0 w-full bg-black/60 text-white text-[10px] py-1 text-center font-medium">
+                            내 얼굴
+                        </div>
+                    </div>
+
+                    <!-- Right: Vector Avatar (Skin Color Applied) -->
+                    <div class="relative rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-md flex items-end justify-center">
+                        <div class="absolute top-2 right-2 flex gap-1 z-10">
+                            <div class="w-3 h-3 rounded-full border border-gray-300" :style="{backgroundColor: extractedSkinColor}" title="추출된 피부색"></div>
+                        </div>
+                        
+                        <svg viewBox="0 0 200 250" class="w-full h-full">
+                            <defs>
+                                <!-- Realistic Shadows -->
+                                <linearGradient id="clothShadow" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" style="stop-color:black;stop-opacity:0.0" />
+                                    <stop offset="100%" style="stop-color:black;stop-opacity:0.2" />
+                                </linearGradient>
+                            </defs>
+                            
+                            <!-- Neck -->
+                            <path d="M75,90 Q100,100 125,90 L125,140 L75,140 Z" :fill="extractedSkinColor" />
+                            <path d="M75,90 Q100,110 125,90 L125,100 Q100,120 75,100 Z" fill="black" opacity="0.1" />
+
+                            <!-- Face Shape (Vector) -->
+                            <ellipse cx="100" cy="70" rx="38" ry="48" :fill="extractedSkinColor" />
+                            
+                            <!-- Simple Facial Features (Optional shadows for depth) -->
+                            <!-- Ear L -->
+                            <ellipse cx="62" cy="70" rx="4" ry="8" :fill="extractedSkinColor" />
+                            <!-- Ear R -->
+                            <ellipse cx="138" cy="70" rx="4" ry="8" :fill="extractedSkinColor" />
+                            
+                            <!-- Body/Clothes -->
+                            <path 
+                                d="M60,130 Q100,160 140,130 L180,160 L180,250 L20,250 L20,160 Z" 
+                                :fill="currentSimulatedColor"
+                                class="transition-colors duration-500"
+                            />
+                            
+                            <!-- Cloth Details -->
+                            <path d="M60,130 Q100,160 140,130" fill="none" stroke="black" stroke-opacity="0.1" stroke-width="1" />
+                            <path d="M20,160 L30,250 L20,250 Z" fill="black" opacity="0.1" /> <!-- Side Shadow -->
+                            <path d="M180,160 L170,250 L180,250 Z" fill="black" opacity="0.1" /> <!-- Side Shadow -->
+                        </svg>
+
+                        <div class="absolute bottom-0 left-0 w-full bg-purple-600/80 text-white text-[10px] py-1 text-center font-medium">
+                            컬러 시뮬레이션
                         </div>
                     </div>
                 </div>
 
                 <!-- Zone C: Interaction Area (Color Recommendations) -->
                 <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-                    <h3 class="text-sm font-bold text-gray-700 mb-4 text-center">✨ 베스트 컬러 시뮬레이션 (클릭해보세요)</h3>
+                    <h3 class="text-sm font-bold text-gray-700 mb-4 text-center">✨ 베스트 컬러를 눌러보세요</h3>
                     
                     <div class="flex justify-around items-center">
                         <div v-for="(color, idx) in bestColors" :key="idx" class="flex flex-col items-center gap-2">
@@ -224,6 +224,7 @@
             setup() {
                 const step = ref('intro'); 
                 const capturedImage = ref(null);
+                const extractedSkinColor = ref('#f5d0b0'); // Default Skin Color
                 
                 // 점수 집계: 봄, 여름, 가을, 겨울
                 const scores = reactive({ spring: 0, summer: 0, autumn: 0, winter: 0 });
@@ -363,7 +364,11 @@
                         count++;
                     }
                     r = Math.floor(r/count);
+                    g = Math.floor(g/count);
                     b = Math.floor(b/count);
+
+                    // 추출된 피부색 저장 (오른쪽 벡터 이미지용)
+                    extractedSkinColor.value = `rgb(${r}, ${g}, ${b})`;
 
                     // 피부톤 기반 점수 가산
                     if (r > b) {
@@ -451,6 +456,7 @@
                     resultDesc,
                     bestColors,
                     currentSimulatedColor,
+                    extractedSkinColor,
                     capturedImage,
                     videoRef,
                     canvasRef,
