@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 퍼스널 컬러 진단 (Vue 3 CDN)</title>
+    <title>AI 퍼스널 컬러 진단 (PDF 기획 반영)</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Vue 3 -->
@@ -16,7 +16,7 @@
         .fade-enter-active, .fade-leave-active { transition: opacity 0.5s ease; }
         .fade-enter-from, .fade-leave-to { opacity: 0; }
         
-        /* 비디오 좌우 반전 */
+        /* 비디오 및 이미지 좌우 반전 */
         .mirror-mode { transform: scaleX(-1); }
     </style>
 </head>
@@ -25,56 +25,63 @@
     <div id="app" class="w-full max-w-md bg-white rounded-3xl shadow-xl overflow-hidden min-h-[600px] flex flex-col relative">
         
         <!-- Header -->
-        <div class="p-4 bg-gradient-to-r from-pink-100 to-purple-100 flex items-center justify-center">
-            <i data-lucide="sparkles" class="w-5 h-5 text-purple-600 mr-2"></i>
-            <h1 class="text-lg font-bold text-gray-800">AI 퍼스널 컬러 진단</h1>
+        <div class="p-4 bg-white border-b flex items-center justify-center sticky top-0 z-10">
+            <h1 class="text-lg font-bold text-gray-800">퍼스널 컬러 진단</h1>
         </div>
 
         <!-- Content Area -->
-        <div class="flex-1 flex flex-col p-6 items-center justify-center relative w-full">
+        <div class="flex-1 flex flex-col p-6 items-center justify-center relative w-full overflow-y-auto">
             
-            <!-- Step 1: Intro & Gender Selection -->
-            <div v-if="step === 'intro'" class="text-center space-y-6 w-full animate-fade-in">
-                <div class="w-24 h-24 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i data-lucide="camera" class="w-10 h-10 text-purple-500"></i>
-                </div>
-                <h2 class="text-2xl font-bold">나의 퍼스널 컬러 찾기</h2>
-                <p class="text-gray-500 leading-relaxed text-sm">
-                    전면 카메라로 피부톤을 분석하고,<br/>
-                    성별 맞춤 질문을 통해<br/>
-                    당신의 퍼스널 컬러를 찾아드립니다.
-                </p>
-                <div class="bg-yellow-50 p-3 rounded-xl text-xs text-yellow-800 text-left">
-                    <i data-lucide="info" class="w-3 h-3 inline mr-1"></i>
-                    자연광이나 밝은 곳에서 촬영해야 정확도가 높습니다.
+            <!-- Step 1: Start Screen (PDF Screen 1) -->
+            <div v-if="step === 'intro'" class="text-center space-y-8 w-full animate-fade-in flex flex-col items-center justify-center h-full">
+                <div class="space-y-4">
+                    <h2 class="text-3xl font-bold text-gray-900">AI 퍼스널 컬러 진단</h2>
+                    <p class="text-gray-500">당신에게 가장 잘 어울리는 색을 찾아보세요.</p>
                 </div>
                 
-                <div class="space-y-3 pt-2">
-                    <p class="text-sm font-bold text-purple-600">성별을 선택하여 시작하세요</p>
-                    <div class="flex gap-3">
-                        <button 
-                            @click="startCamera('female')"
-                            class="flex-1 py-3 bg-pink-500 text-white rounded-xl font-medium shadow-lg hover:bg-pink-600 transition-colors flex items-center justify-center gap-2"
-                        >
-                            <i data-lucide="user" class="w-4 h-4"></i> 여성 (Female)
-                        </button>
-                        <button 
-                            @click="startCamera('male')"
-                            class="flex-1 py-3 bg-blue-500 text-white rounded-xl font-medium shadow-lg hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
-                        >
-                            <i data-lucide="user" class="w-4 h-4"></i> 남성 (Male)
-                        </button>
-                    </div>
+                <div class="w-40 h-40 bg-gray-100 rounded-full flex items-center justify-center border-4 border-gray-200">
+                    <i data-lucide="camera" class="w-16 h-16 text-gray-400"></i>
                 </div>
 
-                <p v-if="permissionError" class="text-red-500 text-sm mt-2">
-                    카메라 접근 권한이 필요합니다. 브라우저 설정에서 권한을 허용해주세요.
-                </p>
+                <button 
+                    @click="startQuiz"
+                    class="w-full max-w-xs py-4 bg-gray-900 text-white rounded-xl font-bold text-lg shadow-lg hover:bg-gray-800 transition-all transform hover:scale-105"
+                >
+                    시작하기
+                </button>
             </div>
 
-            <!-- Step 2: Camera -->
-            <div v-if="step === 'camera'" class="w-full h-full flex flex-col items-center">
-                <div class="relative w-full aspect-[3/4] bg-black rounded-2xl overflow-hidden mb-4 shadow-inner">
+            <!-- Step 2: Quiz Screen (PDF Screen 2 - 5 Questions) -->
+            <div v-if="step === 'quiz'" class="w-full h-full flex flex-col animate-fade-in">
+                <div class="flex justify-between items-center mb-8">
+                    <span class="text-purple-600 font-bold text-lg">Q{{ currentQuestionIndex + 1 }}</span>
+                    <div class="h-2 flex-1 mx-4 bg-gray-100 rounded-full overflow-hidden">
+                        <div class="h-full bg-purple-500 transition-all duration-300" :style="{ width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }"></div>
+                    </div>
+                    <span class="text-gray-400 text-sm">{{ currentQuestionIndex + 1 }}/{{ questions.length }}</span>
+                </div>
+                
+                <h3 class="text-xl font-bold mb-8 leading-snug break-keep">
+                    {{ questions[currentQuestionIndex].text }}
+                </h3>
+
+                <div class="space-y-3 flex-1 overflow-y-auto pb-4">
+                    <button
+                        v-for="(option, idx) in questions[currentQuestionIndex].options"
+                        :key="idx"
+                        @click="handleAnswer(option.score)"
+                        class="w-full py-4 px-6 text-left border rounded-xl hover:border-purple-500 hover:bg-purple-50 transition-all text-gray-700 font-medium active:scale-[0.98] flex items-center justify-between group"
+                    >
+                        <span>{{ option.text }}</span>
+                        <div v-if="option.color" class="w-6 h-6 rounded-full border border-gray-200" :style="{ backgroundColor: option.color }"></div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 3: Camera Screen (PDF Screen 3) -->
+            <div v-if="step === 'camera'" class="w-full h-full flex flex-col items-center animate-fade-in">
+                <h2 class="text-xl font-bold mb-4">3단계. 피부톤 측정</h2>
+                <div class="relative w-full aspect-[3/4] bg-black rounded-2xl overflow-hidden mb-6 shadow-inner">
                     <video 
                         ref="videoRef" 
                         autoplay 
@@ -86,249 +93,190 @@
                     <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
                         <div class="w-48 h-64 border-2 border-white/70 rounded-[50%] box-border z-10 shadow-[0_0_0_9999px_rgba(0,0,0,0.5)]"></div>
                         <div class="absolute text-white/90 text-sm font-medium mt-72 bg-black/50 px-3 py-1 rounded-full">
-                            얼굴을 가이드에 맞춰주세요
+                            얼굴을 영역에 맞춰주세요
                         </div>
                     </div>
                 </div>
+                
+                <div class="bg-yellow-50 p-3 rounded-lg text-xs text-yellow-800 mb-4 w-full text-center">
+                    <i data-lucide="sun" class="w-3 h-3 inline mr-1"></i>
+                    밝은 곳에서 안경/마스크를 벗고 촬영해주세요.
+                </div>
+
                 <button 
                     @click="captureImage"
-                    class="w-16 h-16 bg-white border-4 border-purple-500 rounded-full shadow-lg flex items-center justify-center hover:scale-105 transition-transform"
+                    class="w-full py-4 bg-purple-600 text-white rounded-xl font-bold text-lg shadow-lg hover:bg-purple-700 transition-colors flex items-center justify-center gap-2"
                 >
-                    <div class="w-12 h-12 bg-purple-500 rounded-full"></div>
+                    <i data-lucide="camera" class="w-5 h-5"></i> 사진 찍기
                 </button>
             </div>
 
-            <!-- Step 3: Analysis -->
-            <div v-if="step === 'analysis'" class="text-center w-full animate-fade-in">
-                <div class="mb-6 relative w-32 h-32 mx-auto">
-                    <img 
-                        :src="capturedImage" 
-                        alt="Captured" 
-                        class="w-full h-full object-cover rounded-full border-4 border-white shadow-lg"
-                    />
-                    <div class="absolute -bottom-2 -right-2 bg-green-500 text-white p-2 rounded-full flex items-center justify-center">
-                        <i data-lucide="check" class="w-4 h-4"></i>
+            <!-- Step 4: Result Screen (PDF Screen 4 - Zone A, B, C) -->
+            <div v-if="step === 'result'" class="w-full h-full flex flex-col animate-fade-in overflow-y-auto">
+                
+                <!-- Zone A: Result Title -->
+                <div class="text-center mb-6">
+                    <span class="text-sm text-gray-500 font-medium">당신의 퍼스널 컬러는</span>
+                    <h2 class="text-3xl font-extrabold text-gray-900 mt-1">{{ resultType }}</h2>
+                    <p class="text-sm text-purple-600 mt-2 font-medium">{{ resultDesc }}</p>
+                </div>
+
+                <!-- Zone B: Simulation Area (Avatar + User Face) -->
+                <div class="relative w-full aspect-[4/5] bg-gray-100 rounded-2xl overflow-hidden mb-6 shadow-md flex items-end justify-center">
+                    
+                    <!-- Avatar Body (SVG) -->
+                    <svg viewBox="0 0 200 240" class="w-full h-full absolute bottom-0">
+                        <!-- T-Shirt/Body -->
+                        <path 
+                            d="M40,240 L40,160 C40,140 60,130 100,130 C140,130 160,140 160,160 L160,240 Z" 
+                            :fill="currentSimulatedColor"
+                            class="transition-colors duration-500"
+                        />
+                        <!-- Neck Area (Skin color placeholder) -->
+                        <path d="M85,130 Q100,150 115,130" fill="#F0D5BE" />
+                    </svg>
+
+                    <!-- User Face Overlay -->
+                    <div class="absolute top-[15%] w-[40%] aspect-square rounded-full border-4 border-white shadow-lg overflow-hidden bg-gray-300 z-10">
+                        <img 
+                            v-if="capturedImage" 
+                            :src="capturedImage" 
+                            class="w-full h-full object-cover mirror-mode scale-150 translate-y-[10%]" 
+                            alt="User Face" 
+                        />
                     </div>
                 </div>
-                
-                <h3 class="text-xl font-bold mb-2">피부톤 추출 완료!</h3>
-                <div class="flex justify-center gap-2 mb-6">
-                    <div 
-                        class="w-12 h-12 rounded-lg shadow-sm border"
-                        :style="{ backgroundColor: `rgb(${skinData.r}, ${skinData.g}, ${skinData.b})` }"
-                        title="Average Skin Color"
-                    ></div>
-                    <div class="text-left text-sm text-gray-500 flex flex-col justify-center">
-                       <span>R: {{ skinData.r }} G: {{ skinData.g }} B: {{ skinData.b }}</span>
-                       <span>{{ skinData.warmScore > 0 ? "Warm Base" : "Cool Base" }} 감지됨</span>
+
+                <!-- Zone C: Interaction Area (Color Recommendations) -->
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                    <h3 class="text-sm font-bold text-gray-700 mb-4 text-center">✨ 베스트 컬러 시뮬레이션 (클릭해보세요)</h3>
+                    
+                    <div class="flex justify-around items-center">
+                        <div v-for="(color, idx) in bestColors" :key="idx" class="flex flex-col items-center gap-2">
+                            <button 
+                                @click="currentSimulatedColor = color"
+                                class="w-14 h-14 rounded-full shadow-md border-2 transition-transform hover:scale-110 focus:outline-none ring-offset-2 focus:ring-2 ring-purple-500"
+                                :class="{'ring-2 ring-purple-500 scale-110': currentSimulatedColor === color, 'border-white': currentSimulatedColor !== color}"
+                                :style="{ backgroundColor: color }"
+                            ></button>
+                            <span class="text-xs font-bold text-gray-500">{{ idx + 1 }}순위</span>
+                        </div>
                     </div>
                 </div>
 
-                <p class="text-gray-600 mb-8">
-                    {{ gender === 'male' ? '남성' : '여성' }} 맞춤 질문을 통해<br/>
-                    정확도를 높입니다.
-                </p>
-                
-                <button 
-                    @click="step = 'quiz'"
-                    class="w-full py-3 bg-purple-600 text-white rounded-xl font-medium shadow-md hover:bg-purple-700 transition-colors"
-                >
-                    퀴즈 진행하기
-                </button>
-            </div>
-
-            <!-- Step 4: Quiz -->
-            <div v-if="step === 'quiz'" class="w-full h-full flex flex-col animate-fade-in">
-                <div class="flex justify-between items-center mb-6">
-                    <span class="text-purple-600 font-bold">Q{{ currentQuestions[currentQuestionIndex].id }}</span>
-                    <span class="text-gray-300 text-sm">{{ currentQuestionIndex + 1 }} / {{ currentQuestions.length }}</span>
-                </div>
-                
-                <h3 class="text-xl font-bold mb-8 leading-snug break-keep">
-                    {{ currentQuestions[currentQuestionIndex].text }}
-                </h3>
-
-                <div class="space-y-3 flex-1">
-                    <button
-                        v-for="(option, idx) in currentQuestions[currentQuestionIndex].options"
-                        :key="idx"
-                        @click="handleAnswer(option.score)"
-                        class="w-full py-4 px-6 text-left border rounded-xl hover:border-purple-500 hover:bg-purple-50 transition-all text-gray-700 font-medium active:scale-[0.98]"
+                <div class="mt-8 mb-4">
+                    <button 
+                        @click="resetApp"
+                        class="w-full py-3 border border-gray-300 rounded-xl font-medium text-gray-600 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
                     >
-                        {{ option.text }}
+                        <i data-lucide="refresh-ccw" class="w-4 h-4"></i> 처음으로 돌아가기
                     </button>
                 </div>
             </div>
 
-            <!-- Step 5: Result -->
-            <div v-if="step === 'result'" class="w-full h-full flex flex-col items-center animate-fade-in text-center overflow-y-auto">
-                <span class="text-purple-600 text-sm font-bold tracking-wider mb-2">MY PERSONAL COLOR</span>
-                <h2 class="text-3xl font-extrabold text-gray-900 mb-6">{{ resultType }}</h2>
-
-                <!-- Color Palette Preview -->
-                <div class="flex gap-2 mb-6">
-                    <div 
-                        v-for="(color, idx) in resultInfo.colors" 
-                        :key="idx" 
-                        class="w-12 h-12 rounded-full shadow-md border-2 border-white transform hover:scale-110 transition-transform"
-                        :style="{ backgroundColor: color }"
-                    ></div>
-                </div>
-
-                <div class="bg-gray-50 rounded-2xl p-5 text-left w-full mb-6">
-                    <p class="text-gray-700 leading-relaxed mb-4 text-sm">
-                        {{ resultInfo.desc }}
-                    </p>
-                    <div class="space-y-2 text-sm">
-                        <div class="flex items-start">
-                            <span class="font-bold w-16 text-green-600">BEST</span>
-                            <span class="text-gray-600 flex-1">{{ resultInfo.best }}</span>
-                        </div>
-                        <div class="flex items-start">
-                            <span class="font-bold w-16 text-red-500">WORST</span>
-                            <span class="text-gray-600 flex-1">{{ resultInfo.worst }}</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div v-if="capturedImage" class="relative w-32 h-32 rounded-2xl overflow-hidden mb-6 shadow-md border-2 border-gray-100">
-                    <img :src="capturedImage" class="w-full h-full object-cover mirror-mode" alt="User" />
-                    <div class="absolute bottom-0 left-0 w-full bg-black/50 text-white text-[10px] py-1">
-                        촬영된 이미지
-                    </div>
-                </div>
-
-                <button 
-                    @click="resetApp"
-                    class="w-full py-3 border border-gray-300 rounded-xl font-medium text-gray-600 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
-                >
-                    <i data-lucide="refresh-ccw" class="w-4 h-4"></i> 다시 진단하기
-                </button>
-            </div>
-
         </div>
         
-        <!-- Hidden Canvas for Processing -->
+        <!-- Hidden Canvas -->
         <canvas ref="canvasRef" class="hidden"></canvas>
     </div>
 
     <script>
-        const { createApp, ref, reactive, computed, onMounted, onUpdated, nextTick } = Vue;
+        const { createApp, ref, reactive, onMounted, onUpdated, nextTick } = Vue;
 
         createApp({
             setup() {
                 const step = ref('intro'); 
-                const gender = ref('female'); // 'female' or 'male'
                 const capturedImage = ref(null);
-                const skinData = reactive({ r: 0, g: 0, b: 0, brightness: 0, warmScore: 0 });
-                const quizScore = reactive({ warm: 0, cool: 0, light: 0, dark: 0 });
+                
+                // 점수 집계: 봄, 여름, 가을, 겨울
+                const scores = reactive({ spring: 0, summer: 0, autumn: 0, winter: 0 });
+                // 웜/쿨 보조 점수
+                const toneScore = reactive({ warm: 0, cool: 0 });
+
                 const currentQuestionIndex = ref(0);
-                const permissionError = ref(false);
                 const resultType = ref('');
-                const resultInfo = ref({});
+                const resultDesc = ref('');
+                const bestColors = ref([]);
+                const currentSimulatedColor = ref('#eeeeee');
 
                 const videoRef = ref(null);
                 const canvasRef = ref(null);
                 const streamRef = ref(null);
 
-                // --- 질문 데이터 (성별 분리) ---
-                const femaleQuestions = [
+                // --- 2단계 질문 데이터 (PDF 기반 5개) ---
+                const questions = [
                     {
-                        id: 1,
-                        text: "평소에 더 잘 어울리는 액세서리 컬러는?",
+                        text: "Q1. 피부가 햇볕에 타면 어떻게 되나요?",
                         options: [
-                            { text: "골드 (Gold)", score: { warm: 2, cool: 0 } },
-                            { text: "실버 (Silver)", score: { warm: 0, cool: 2 } },
+                            { text: "빨갛게 달아오른다 (쿨톤 경향)", score: { type: 'tone', cool: 2 } },
+                            { text: "갈색으로 변하거나 까무잡잡해진다 (웜톤 경향)", score: { type: 'tone', warm: 2 } }
                         ]
                     },
                     {
-                        id: 2,
-                        text: "햇볕에 장시간 노출되었을 때 피부 반응은?",
+                        text: "Q2. 평소에 더 잘 어울린다고 느끼는 액세서리 색상은?",
                         options: [
-                            { text: "검게 잘 탄다 (구릿빛)", score: { warm: 2, cool: 0, dark: 1 } },
-                            { text: "빨갛게 익거나 타지 않는다", score: { warm: 0, cool: 2, light: 1 } },
+                            { text: "실버 (Silver) / 화이트골드", score: { type: 'tone', cool: 2 }, color: '#C0C0C0' },
+                            { text: "골드 (Gold) / 로즈골드", score: { type: 'tone', warm: 2 }, color: '#FFD700' }
                         ]
                     },
                     {
-                        id: 3,
-                        text: "본인의 자연 머리카락 색에 가까운 것은?",
+                        text: "Q3. 자주 손이 가는 옷의 색상 계열은?",
                         options: [
-                            { text: "밝은 갈색 ~ 짙은 갈색", score: { warm: 1, light: 1 } },
-                            { text: "소프트 블랙 ~ 짙은 검정", score: { cool: 1, dark: 1 } },
+                            { text: "파스텔 톤 (밝고 부드러움)", score: { type: 'season', summer: 2, spring: 1 } },
+                            { text: "비비드 원색 (쨍하고 선명함)", score: { type: 'season', winter: 2, spring: 1 } },
+                            { text: "어두운 톤 (차분하고 깊음)", score: { type: 'season', autumn: 2, winter: 1 } },
+                            { text: "아이보리/베이지 (따뜻함)", score: { type: 'season', spring: 2, autumn: 1 } }
                         ]
                     },
                     {
-                        id: 4,
-                        text: "평소 립스틱/틴트 중 더 잘 받는 색상은?",
+                        text: "Q4. 본인의 눈동자나 머리카락 색 특징은?",
                         options: [
-                            { text: "코랄, 오렌지, 벽돌색", score: { warm: 2 } },
-                            { text: "핑크, 마젠타, 플럼", score: { cool: 2 } },
+                            { text: "매우 짙고 선명하다 (검정)", score: { type: 'season', winter: 2 } },
+                            { text: "밝은 갈색이거나 붉은 기가 돈다", score: { type: 'season', spring: 2 } },
+                            { text: "부드러운 초코/다크 브라운이다", score: { type: 'season', autumn: 2, summer: 1 } },
+                            { text: "회색빛이 돌거나 소프트한 느낌", score: { type: 'season', summer: 2 } }
                         ]
                     },
                     {
-                        id: 5,
-                        text: "옷을 입을 때 더 잘 어울리는 느낌은?",
+                        text: "Q5. 가장 마음에 드는 컬러 팔레트를 선택해주세요.",
                         options: [
-                            { text: "파스텔 톤이나 밝은 색 (화사함)", score: { light: 2 } },
-                            { text: "원색이나 어두운 색 (또렷함)", score: { dark: 2 } },
+                            { text: "봄 (생기발랄: 코랄, 옐로우)", score: { type: 'season', spring: 3 }, color: '#FF7F50' },
+                            { text: "여름 (청량함: 스카이블루, 라벤더)", score: { type: 'season', summer: 3 }, color: '#87CEEB' },
+                            { text: "가을 (그윽함: 카키, 브릭레드)", score: { type: 'season', autumn: 3 }, color: '#8B4513' },
+                            { text: "겨울 (모던함: 블랙, 마젠타)", score: { type: 'season', winter: 3 }, color: '#DC143C' }
                         ]
                     }
                 ];
 
-                const maleQuestions = [
-                    {
-                        id: 1,
-                        text: "평소에 더 잘 어울리는 장신구(시계, 벨트버클 등) 색상은?",
-                        options: [
-                            { text: "골드 계열 (Gold)", score: { warm: 2, cool: 0 } },
-                            { text: "실버/메탈 계열 (Silver)", score: { warm: 0, cool: 2 } },
-                        ]
-                    },
-                    {
-                        id: 2,
-                        text: "햇볕에 장시간 노출되었을 때 피부 반응은?",
-                        options: [
-                            { text: "검게 잘 탄다 (구릿빛)", score: { warm: 2, cool: 0, dark: 1 } },
-                            { text: "빨갛게 익거나 타지 않는다", score: { warm: 0, cool: 2, light: 1 } },
-                        ]
-                    },
-                    {
-                        id: 3,
-                        text: "본인의 자연 머리카락 색에 가까운 것은?",
-                        options: [
-                            { text: "밝은 갈색 ~ 짙은 갈색", score: { warm: 1, light: 1 } },
-                            { text: "소프트 블랙 ~ 짙은 검정", score: { cool: 1, dark: 1 } },
-                        ]
-                    },
-                    {
-                        id: 4,
-                        text: "정장이나 셔츠를 입을 때, 얼굴색이 더 사는 색상은?",
-                        options: [
-                            { text: "아이보리, 베이지, 브라운 계열", score: { warm: 2 } },
-                            { text: "순백색(White), 네이비, 블랙 계열", score: { cool: 2 } },
-                        ]
-                    },
-                    {
-                        id: 5,
-                        text: "평소 본인이 선호하는 스타일링 느낌은?",
-                        options: [
-                            { text: "부드럽고 따뜻한 인상 (밝은 니트/셔츠)", score: { light: 2 } },
-                            { text: "선명하고 깔끔한 인상 (짙은 코트/수트)", score: { dark: 2 } },
-                        ]
+                const startQuiz = () => {
+                    step.value = 'quiz';
+                };
+
+                const handleAnswer = (score) => {
+                    // 점수 계산 로직
+                    if (score.type === 'tone') {
+                        if (score.warm) toneScore.warm += score.warm;
+                        if (score.cool) toneScore.cool += score.cool;
+                    } else if (score.type === 'season') {
+                        if (score.spring) scores.spring += score.spring;
+                        if (score.summer) scores.summer += score.summer;
+                        if (score.autumn) scores.autumn += score.autumn;
+                        if (score.winter) scores.winter += score.winter;
                     }
-                ];
 
-                const currentQuestions = computed(() => {
-                    return gender.value === 'male' ? maleQuestions : femaleQuestions;
-                });
+                    if (currentQuestionIndex.value < questions.length - 1) {
+                        currentQuestionIndex.value++;
+                    } else {
+                        // 퀴즈 끝 -> 카메라 단계로 이동
+                        startCamera();
+                    }
+                };
 
-                // --- 1. 카메라 로직 ---
-                const startCamera = async (selectedGender) => {
-                    gender.value = selectedGender;
+                // --- 카메라 로직 ---
+                const startCamera = async () => {
+                    step.value = 'camera';
+                    await nextTick();
                     try {
-                        step.value = 'camera';
-                        await nextTick();
-                        
                         const stream = await navigator.mediaDevices.getUserMedia({
                             video: { facingMode: 'user' },
                             audio: false,
@@ -336,18 +284,10 @@
                         streamRef.value = stream;
                         if (videoRef.value) {
                             videoRef.value.srcObject = stream;
-                            try { await videoRef.value.play(); } catch (e) { console.log("Play error", e); }
                         }
                     } catch (err) {
                         console.error("Camera Error:", err);
-                        permissionError.value = true;
-                        step.value = 'intro';
-                    }
-                };
-
-                const stopCamera = () => {
-                    if (streamRef.value) {
-                        streamRef.value.getTracks().forEach(track => track.stop());
+                        alert("카메라 권한이 필요합니다.");
                     }
                 };
 
@@ -356,139 +296,106 @@
 
                     const video = videoRef.value;
                     const canvas = canvasRef.value;
-                    const context = canvas.getContext('2d');
+                    const ctx = canvas.getContext('2d');
 
                     canvas.width = video.videoWidth;
                     canvas.height = video.videoHeight;
-
-                    // 이미지 그리기 (좌우 반전 처리)
-                    context.translate(canvas.width, 0);
-                    context.scale(-1, 1);
-                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-                    const imageUrl = canvas.toDataURL('image/png');
-                    capturedImage.value = imageUrl;
-                    analyzeSkinTone(context, canvas.width, canvas.height);
-                    stopCamera();
-                    step.value = 'analysis';
-                };
-
-                // --- 2. 피부톤 분석 로직 ---
-                const analyzeSkinTone = (ctx, width, height) => {
-                    const sampleX = Math.floor(width * 0.4);
-                    const sampleY = Math.floor(height * 0.35);
-                    const sampleW = Math.floor(width * 0.2);
-                    const sampleH = Math.floor(height * 0.3);
-
-                    const imageData = ctx.getImageData(sampleX, sampleY, sampleW, sampleH);
-                    const data = imageData.data;
-
-                    let rTotal = 0, gTotal = 0, bTotal = 0;
-                    let count = 0;
-
-                    for (let i = 0; i < data.length; i += 4) {
-                        const brightness = (data[i] + data[i + 1] + data[i + 2]) / 3;
-                        if (brightness > 40 && brightness < 240) {
-                            rTotal += data[i];
-                            gTotal += data[i + 1];
-                            bTotal += data[i + 2];
-                            count++;
-                        }
-                    }
-
-                    if (count > 0) {
-                        skinData.r = Math.round(rTotal / count);
-                        skinData.g = Math.round(gTotal / count);
-                        skinData.b = Math.round(bTotal / count);
-                        
-                        skinData.warmScore = (skinData.r - skinData.b) / 2;
-                        skinData.brightness = (skinData.r + skinData.g + skinData.b) / 3;
-                    }
-                };
-
-                // --- 3. 퀴즈 핸들러 ---
-                const handleAnswer = (score) => {
-                    quizScore.warm += (score.warm || 0);
-                    quizScore.cool += (score.cool || 0);
-                    quizScore.light += (score.light || 0);
-                    quizScore.dark += (score.dark || 0);
-
-                    if (currentQuestionIndex.value < currentQuestions.value.length - 1) {
-                        currentQuestionIndex.value++;
-                    } else {
-                        calculateResult();
-                        step.value = 'result';
-                    }
-                };
-
-                // --- 4. 결과 계산 ---
-                const calculateResult = () => {
-                    let cameraWarmPoint = 0;
-                    let cameraCoolPoint = 0;
-                    let cameraLightPoint = 0;
-                    let cameraDarkPoint = 0;
-
-                    if (skinData.warmScore > 25) cameraWarmPoint += 3;
-                    else cameraCoolPoint += 3;
-
-                    if (skinData.brightness > 130) cameraLightPoint += 2;
-                    else cameraDarkPoint += 2;
-
-                    const totalWarm = quizScore.warm + cameraWarmPoint;
-                    const totalCool = quizScore.cool + cameraCoolPoint;
-                    const totalLight = quizScore.light + cameraLightPoint;
-                    const totalDark = quizScore.dark + cameraDarkPoint;
-
-                    const isWarm = totalWarm >= totalCool;
-                    const isLight = totalLight >= totalDark;
-
-                    let type = "";
-                    if (isWarm && isLight) type = "봄 웜톤 (Spring Warm)";
-                    else if (!isWarm && isLight) type = "여름 쿨톤 (Summer Cool)";
-                    else if (isWarm && !isLight) type = "가을 웜톤 (Autumn Warm)";
-                    else if (!isWarm && !isLight) type = "겨울 쿨톤 (Winter Cool)";
                     
-                    resultType.value = type;
-                    resultInfo.value = getResultDetails(type);
+                    // 좌우반전해서 그리기
+                    ctx.translate(canvas.width, 0);
+                    ctx.scale(-1, 1);
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                    capturedImage.value = canvas.toDataURL('image/png');
+                    
+                    // 카메라 중지 및 피부톤 분석
+                    if (streamRef.value) streamRef.value.getTracks().forEach(t => t.stop());
+                    
+                    analyzeSkinAndResult(ctx, canvas.width, canvas.height);
+                    step.value = 'result';
                 };
 
-                const getResultDetails = (type) => {
-                    const details = {
-                        "봄 웜톤 (Spring Warm)": {
-                            colors: ["#FFD700", "#FF7F50", "#98FB98", "#F0E68C"],
-                            desc: "생기 있고 발랄한 이미지가 잘 어울립니다. 옐로우 베이스의 밝고 선명한 색상이 피부를 더욱 화사하게 만들어줍니다.",
-                            best: "피치, 코랄, 옐로우 그린, 아이보리",
-                            worst: "블랙, 차가운 화이트, 칙칙한 회색"
+                const analyzeSkinAndResult = (ctx, width, height) => {
+                    // 중앙부 피부 픽셀 추출
+                    const imageData = ctx.getImageData(Math.floor(width*0.4), Math.floor(height*0.4), 50, 50);
+                    const data = imageData.data;
+                    let r=0, g=0, b=0, count=0;
+                    
+                    for(let i=0; i<data.length; i+=4) {
+                        r += data[i]; g += data[i+1]; b += data[i+2];
+                        count++;
+                    }
+                    r = Math.floor(r/count);
+                    b = Math.floor(b/count);
+
+                    // 피부톤 기반 점수 가산
+                    if (r > b) {
+                        scores.spring += 1;
+                        scores.autumn += 1;
+                    } else {
+                        scores.summer += 1;
+                        scores.winter += 1;
+                    }
+
+                    // 웜/쿨 퀴즈 점수 반영
+                    if (toneScore.warm > toneScore.cool) {
+                        scores.spring += 2;
+                        scores.autumn += 2;
+                    } else {
+                        scores.summer += 2;
+                        scores.winter += 2;
+                    }
+
+                    // 최종 결과 산출 (가장 높은 점수)
+                    const maxScore = Math.max(scores.spring, scores.summer, scores.autumn, scores.winter);
+                    let finalSeason = '';
+
+                    // 동점 처리 우선순위: 본인의 퀴즈 답변 비중이 높은 순
+                    if (scores.spring === maxScore) finalSeason = 'spring';
+                    else if (scores.summer === maxScore) finalSeason = 'summer';
+                    else if (scores.autumn === maxScore) finalSeason = 'autumn';
+                    else finalSeason = 'winter';
+
+                    setResultData(finalSeason);
+                };
+
+                const setResultData = (season) => {
+                    const data = {
+                        spring: {
+                            title: "봄 웜톤 (Spring Warm)",
+                            desc: "생기발랄하고 따뜻한 에너지가 느껴지는 타입",
+                            colors: ['#FF7F50', '#FFD700', '#98FB98'] // 코랄, 골드, 연두
                         },
-                        "여름 쿨톤 (Summer Cool)": {
-                            colors: ["#E6E6FA", "#87CEEB", "#FFB6C1", "#D8BFD8"],
-                            desc: "청초하고 시원한 이미지가 특징입니다. 블루 베이스의 파스텔 톤이나 회색이 섞인 부드러운 색상이 잘 어울립니다.",
-                            best: "라벤더, 스카이 블루, 로즈 핑크, 오프 화이트",
-                            worst: "비비드 오렌지, 골드, 짙은 카키"
+                        summer: {
+                            title: "여름 쿨톤 (Summer Cool)",
+                            desc: "청량하고 부드러운 우아함이 돋보이는 타입",
+                            colors: ['#87CEEB', '#E6E6FA', '#FFB6C1'] // 스카이블루, 라벤더, 핑크
                         },
-                        "가을 웜톤 (Autumn Warm)": {
-                            colors: ["#8B4513", "#DAA520", "#556B2F", "#CD853F"],
-                            desc: "그윽하고 분위기 있는 성숙한 이미지가 돋보입니다. 옐로우 베이스의 깊고 진한 색상이나 차분한 어스 컬러가 베스트입니다.",
-                            best: "브릭 레드, 머스타드, 카키, 다크 브라운",
-                            worst: "형광 핑크, 파스텔 블루, 쿨한 마젠타"
+                        autumn: {
+                            title: "가을 웜톤 (Autumn Warm)",
+                            desc: "그윽하고 성숙한 분위기가 매력적인 타입",
+                            colors: ['#8B4513', '#DAA520', '#556B2F'] // 브릭, 머스타드, 카키
                         },
-                        "겨울 쿨톤 (Winter Cool)": {
-                            colors: ["#000000", "#FFFFFF", "#DC143C", "#00008B"],
-                            desc: "도시적이고 세련된 카리스마가 있습니다. 뚜렷한 대비가 잘 어울리며, 아주 밝거나 아주 어두운 색상, 쨍한 원색이 잘 받습니다.",
-                            best: "블랙, 퓨어 화이트, 로얄 블루, 체리 레드",
-                            worst: "탁한 베이지, 흐릿한 브라운, 칙칙한 오렌지"
+                        winter: {
+                            title: "겨울 쿨톤 (Winter Cool)",
+                            desc: "도시적이고 세련된 카리스마가 있는 타입",
+                            colors: ['#000000', '#DC143C', '#00008B'] // 블랙, 마젠타, 딥블루
                         }
                     };
-                    return details[type] || details["봄 웜톤 (Spring Warm)"];
+
+                    const res = data[season];
+                    resultType.value = res.title;
+                    resultDesc.value = res.desc;
+                    bestColors.value = res.colors;
+                    currentSimulatedColor.value = res.colors[0]; // 1순위 컬러로 자동 적용
                 };
 
                 const resetApp = () => {
                     step.value = 'intro';
                     capturedImage.value = null;
-                    Object.assign(skinData, { r: 0, g: 0, b: 0, brightness: 0, warmScore: 0 });
-                    Object.assign(quizScore, { warm: 0, cool: 0, light: 0, dark: 0 });
+                    Object.assign(scores, { spring: 0, summer: 0, autumn: 0, winter: 0 });
+                    Object.assign(toneScore, { warm: 0, cool: 0 });
                     currentQuestionIndex.value = 0;
-                    gender.value = 'female'; // reset gender
                 };
 
                 onUpdated(() => {
@@ -501,20 +408,18 @@
 
                 return {
                     step,
-                    gender,
-                    capturedImage,
-                    skinData,
-                    quizScore,
+                    questions,
                     currentQuestionIndex,
-                    permissionError,
                     resultType,
-                    resultInfo,
+                    resultDesc,
+                    bestColors,
+                    currentSimulatedColor,
+                    capturedImage,
                     videoRef,
                     canvasRef,
-                    currentQuestions,
-                    startCamera,
-                    captureImage,
+                    startQuiz,
                     handleAnswer,
+                    captureImage,
                     resetApp
                 };
             }
